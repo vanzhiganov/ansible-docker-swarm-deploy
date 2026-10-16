@@ -1,0 +1,7 @@
+collections:
+  - name: community.general
+    type: galaxy
+  - name: community.docker
+    type: galaxy
+  - name: ansible.posix
+    type: galaxy

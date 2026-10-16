@@ -1,0 +1,91 @@
+---
+- name: swarm prepare
+  hosts:
+  - swarm_nodes
+  tasks:
+  - name: install deps
+    package:
+      name: epel-release
+      state: present
+
+  # TIME
+  - name: install deps
+    package:
+      name: [
+        chrony,
+      ]
+      state: present
+  - systemd:
+      name: chronyd
+      state: restarted
+      enabled: true
+  - ansible.builtin.shell: chronyc -a tracking
+  - ansible.builtin.shell: chronyc -a 'burst 4/4'
+  - ansible.builtin.shell: chronyc -a makestep
+
+  # DOCKER
+  - name: install deps
+    package:
+      name: [
+        yum-utils,
+        python3-requests,
+        # todo: install as pip package
+        # python3-docker,
+        python3-jsondiff,
+        python3-pyyaml,
+      ]
+      state: present
+
+  - name: Add Docker repository
+    shell: yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
+    args:
+      creates: /etc/yum.repos.d/docker-ce.repo
+
+  - package:
+      name: [
+        docker-ce,
+        docker-ce-cli,
+        containerd.io,
+        docker-buildx-plugin,
+        docker-compose-plugin
+      ]
+      state: present
+
+  - systemd:
+      name: docker
+      state: started
+      enabled: true
+
+
+
+  - systemd:
+      name: firewalld
+      state: started
+      enabled: true
+
+  - name: docker swarm port
+    ansible.posix.firewalld:
+      port: 2377/tcp
+      permanent: true
+      state: disabled
+
+  - name: docker swarm port
+    ansible.posix.firewalld:
+      port: 7946/tcp
+      permanent: true
+      state: disabled
+
+  - name: docker swarm port
+    ansible.posix.firewalld:
+      port: 7946/udp
+      permanent: true
+      state: disabled
+
+  - name: docker swarm port
+    ansible.posix.firewalld:
+      port: 4789/udp
+      permanent: true
+      state: disabled
+
+  tags:
+  - prepare

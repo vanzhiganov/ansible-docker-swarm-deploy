@@ -1,0 +1,7 @@
+server1 ansible_host=127.0.0.1 ansible_user=root ansible_python_interpreter=python3
+
+[swarm_manager]
+server1
+
+[swarm_nodes]
+server1
