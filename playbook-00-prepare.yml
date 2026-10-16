@@ -28,13 +28,24 @@
     package:
       name: [
         yum-utils,
+        python3-pip,
         python3-requests,
-        # todo: install as pip package
-        # python3-docker,
         python3-jsondiff,
         python3-pyyaml,
       ]
       state: present
+
+  # community.docker modules need the Docker SDK for Python (docker>=5.0.0)
+  # installed into the *same* interpreter Ansible uses on the target
+  # (ansible_python_interpreter), otherwise the import fails with
+  # "No module named 'docker'".
+  - name: install docker python module
+    ansible.builtin.command:
+      cmd: >-
+        {{ ansible_python_interpreter | default('python3') }} -m pip install
+        "docker>=5.0.0"
+    register: docker_sdk_install
+    changed_when: "'Successfully installed' in docker_sdk_install.stdout"
 
   - name: Add Docker repository
     shell: yum-config-manager --add-repo=https://download.docker.com/linux/centos/docker-ce.repo
